@@ -1,34 +1,42 @@
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver
-from aws_lambda_powertools.utilities.typing import LambdaContext
-from aws_lambda_powertools.logging import correlation_paths
-from aws_lambda_powertools import Logger
-from aws_lambda_powertools import Tracer
-from aws_lambda_powertools import Metrics
-from aws_lambda_powertools.metrics import MetricUnit
+import json
 
-app = APIGatewayRestResolver()
-tracer = Tracer()
-logger = Logger()
-metrics = Metrics(namespace="Powertools")
+# import requests
 
-@app.get("/hello")
-@tracer.capture_method
-def hello():
-    # adding custom metrics
-    # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/metrics/
-    metrics.add_metric(name="HelloWorldInvocations", unit=MetricUnit.Count, value=1)
 
-    # structured log
-    # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/logger/
-    logger.info("Hello world API - HTTP 200")
-    return {"message": "hello world"}
+def lambda_handler(event, context):
+    """Sample pure Lambda function
 
-# Enrich logging with contextual information from Lambda
-@logger.inject_lambda_context(correlation_id_path=correlation_paths.API_GATEWAY_REST)
-# Adding tracer
-# See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/tracer/
-@tracer.capture_lambda_handler
-# ensures metrics are flushed upon request completion/failure and capturing ColdStart metric
-@metrics.log_metrics(capture_cold_start_metric=True)
-def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    return app.resolve(event, context)
+    Parameters
+    ----------
+    event: dict, required
+        API Gateway Lambda Proxy Input Format
+
+        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+
+    context: object, required
+        Lambda Context runtime methods and attributes
+
+        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
+
+    Returns
+    ------
+    API Gateway Lambda Proxy Output Format: dict
+
+        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
+    """
+
+    # try:
+    #     ip = requests.get("http://checkip.amazonaws.com/")
+    # except requests.RequestException as e:
+    #     # Send some context about this error to Lambda Logs
+    #     print(e)
+
+    #     raise e
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": "hello world",
+            # "location": ip.text.replace("\n", "")
+        }),
+    }
